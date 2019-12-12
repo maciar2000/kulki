@@ -1,5 +1,7 @@
-import Board from "./Board";
-var x: number = 9;
-var board = new Board(x);
-document.getElementById('root').appendChild(board.create());
-board.balls();
+import board from "./Board";
+import Game from './Game';
+
+document.getElementById('root').appendChild(board());
+
+let game = new Game();
+game.startGame();
