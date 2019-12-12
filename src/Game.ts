@@ -17,7 +17,7 @@ class Game {
         this.clickBall();
     }
     clickBall(): void {
-        let clickField = this.clickField;
+        let clickField = this.clickField.bind(this);
         document.querySelectorAll('.ball').forEach(item => {
             item.addEventListener('click', function(e) {
                 document.querySelector('.clickedBall') ? document.querySelector('.clickedBall').setAttribute('class', 'ball') : null;
@@ -30,16 +30,34 @@ class Game {
         });
     }
     clickField(): void {
+        let searchPath = this.searchPath.bind(this);
+        let moveBall = this.moveBall.bind(this);
         document.querySelectorAll('.field').forEach(item => {
             item.addEventListener('mouseover', function () {
                 document.querySelector('.hoverField') ? document.querySelector('.hoverField').setAttribute('class', 'field') : null;
                 this.setAttribute('class', 'field hoverField');
             });
             item.addEventListener('click', function () {
-                console.log(this.id, settings.ballId)
                 set('fieldId', this.id);
+                set('board2', settings.board);
+                if (searchPath()) moveBall();
+                else console.log('nothing')
             });
         });
+    }
+    searchPath(): boolean {
+        let board = settings.board2;
+        let [xBall, yBall] = settings.ballId.split(',');
+        let [xField, yField] = settings.fieldId.split(',');
+        console.log('ball',xBall, yBall);
+        console.log('field', xField, yField);
+        board[yField][xField] = board[yBall][xBall];
+        board[yBall][xBall] = 0;
+        console.log('b:'+board,'sb2:'+settings.board2,'sb:'+settings.board)
+        return true;
+    }
+    moveBall() {
+        
     }
 }
 export default Game;
