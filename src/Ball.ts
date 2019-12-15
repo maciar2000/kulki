@@ -6,22 +6,29 @@ class Ball {
     colorId: number;
     color: string;
     constructor() {
-        this.x = Math.round(Math.random() * settings.size);
-        this.y = Math.round(Math.random() * settings.size);
+        this.x = Math.round(Math.random() * (settings.size - 1));
+        this.y = Math.round(Math.random() * (settings.size - 1));
         this.colorId = Math.round(Math.random() * 6);
         this.color = settings.colors[this.colorId];
     }
+    checkEmptyField(): number {
+        let x: number = 0;
+        settings.board.map(
+            (item: any, index: number) => settings.board[index].map(
+                (item: any) => item == 0 ? x++ : null
+            )
+        );
+        return x;
+    }
     create(): void {
-        let board = settings.board;
-        while (board[this.y][this.x] != 0) {
+        let board = [...settings.board];
+        while (board[this.y][this.x] != 0 && this.checkEmptyField() != 0) {
             console.log('w')
-            this.x = Math.round(Math.random() * settings.size);
-            this.y = Math.round(Math.random() * settings.size);
+            this.x = Math.round(Math.random() * (settings.size - 1));
+            this.y = Math.round(Math.random() * (settings.size - 1));
         }
-        console.log(this.x, this.y)
-        console.log(board)
         board[this.y][this.x] = `X${this.colorId}`;
-        set('board', board);
+        set('board', [...board]);
 
         let ball: HTMLDivElement = document.createElement('div');
         let id: string = `${this.x},${this.y}`;

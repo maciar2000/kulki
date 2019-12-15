@@ -1,7 +1,7 @@
 export let settings: { [key: string]: any } = {};
 
 settings = {
-    'colors': [
+    colors: [
         "red",
         "blue",
         "green",
@@ -11,9 +11,10 @@ settings = {
         "orange"
     ],
     size: 9,
-    board: [0],
+    board: [],
+    path: [],
     ballId: '',
-    fieldId:''
+    fieldId: ''
 };
 
 export let set = (k: string, v: any) => settings[k] = v;
