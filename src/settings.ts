@@ -5,8 +5,8 @@ settings = {
         "red",
         "blue",
         "green",
-        "black",
-        "pink",
+        "white",
+        "purple",
         "gray",
         "orange"
     ],

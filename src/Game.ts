@@ -46,6 +46,7 @@ class Game {
             });
             item.addEventListener('click', function () {
                 set('fieldId', this.id);
+                this.style.background = 'white';
                 if (searchPath()) moveBall();
                 else console.log('nothing')
             });
@@ -59,17 +60,37 @@ class Game {
         console.log('ball', xBall, yBall);
         console.log('field', xField, yField);
         console.log(settings.board);
-        const neighbours = this.getNeighbours(eval(xBall), eval(yBall));
-        console.info(neighbours, this.board)
-        for (const item of neighbours) {
-            const [x, y] = item[0].split(',');
-            this.board[eval(y)][eval(x)] = 1;
+        let neighboursBall = this.getNeighbours(eval(xBall), eval(yBall));
+        let currentField = `${xBall},${yBall}`;
+        console.info(neighboursBall, this.board)
+        let i = 1;
+        let j = 1;
+        let key = 0;
+        let neighboursBase = [...neighboursBall];
+        for (const item of neighboursBall) {
+            const [x, y] = item.split(',');
+            currentField = `${x},${y}`;
+            if (currentField == `${xField},${yField}`) break;
+            const neighbours = this.getNeighbours(eval(x), eval(y));
+            this.board[eval(y)][eval(x)] = j;
+            document.getElementById(`${x},${y}`).innerHTML += `${j}`;
+            for (const item2 of neighbours) {
+                if (neighboursBall.indexOf(item2) == -1)
+                    neighboursBall.push(item2);
+                if (currentField == `${xField},${yField}`) break;
+            }
+            if (neighboursBase.length / i == 1) {
+                key += i;
+                console.log(j, i, neighboursBase, neighboursBase.slice(key));
+                neighboursBase = neighboursBall.slice(key);
+                j++;
+                i = 1;
+            } else i++;
         }
-        console.log(settings.board)
         return true;
     }
-    getNeighbours(x1: number, y1: number): Array<Array<String>> {
-        let neighbours: Array<Array<String>> = [];
+    getNeighbours(x1: number, y1: number): Array<String> {
+        let neighbours: Array<String> = [];
         for (let x: number = Math.max(0, x1 - 1); x <= Math.min(x1 + 1, settings.size - 1); x++) {
             for (let y: number = Math.max(0, y1 - 1); y <= Math.min(y1 + 1, settings.size - 1); y++) {
                 if (
@@ -85,8 +106,8 @@ class Game {
                         )
                     )
                 ) {
-                    if (settings.board[y][x] == 0)
-                        neighbours.push([`${x},${y}`])
+                    if (this.board[y][x] == 0)
+                        neighbours.push(`${x},${y}`)
                 }
             }
         }
