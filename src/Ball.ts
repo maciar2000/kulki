@@ -8,7 +8,7 @@ class Ball {
     constructor() {
         this.x = Math.round(Math.random() * (settings.size - 1));
         this.y = Math.round(Math.random() * (settings.size - 1));
-        this.colorId = Math.round(Math.random() * 6);
+        this.colorId = 1//Math.round(Math.random() * 6);
         this.color = settings.colors[this.colorId];
     }
     checkEmptyField(): number {
@@ -20,8 +20,8 @@ class Ball {
         );
         return x;
     }
-    create(): void {
-        let board = [...settings.board];
+    create(): string[] {
+        let board = JSON.parse(JSON.stringify(settings.board));
         while (board[this.y][this.x] != 0 && this.checkEmptyField() != 0) {
             console.log('w')
             this.x = Math.round(Math.random() * (settings.size - 1));
@@ -36,6 +36,7 @@ class Ball {
         ball.setAttribute('name', id);
         ball.style.background = this.color;
         document.getElementById(id).appendChild(ball);
+        return [`X${this.colorId}`,id];
     }
 }
 

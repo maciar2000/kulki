@@ -6,16 +6,20 @@ class Game {
     fClickField: boolean;
     board: any;
     path: String[];
+    points: number;
     constructor() {
         this.startTime = new Date();
+        this.points = 0;
     }
-    create3Balls(): void {
+    create3Balls(): string[][] {
         let ball = new Ball();
-        let x: number = ball.checkEmptyField() >= 3 ? 27 : ball.checkEmptyField();
+        let x: number = ball.checkEmptyField() >= 3 ? 3 : ball.checkEmptyField();
+        let balls: string[][] = [];
         for (let i = 0; i < x; i++) {
             ball = new Ball();
-            ball.create();
+            balls.push(ball.create());
         }
+        return balls;
     }
     startGame() {
         this.create3Balls();
@@ -144,7 +148,7 @@ class Game {
         }
         return neighbours;
     }
-    moveBall() {
+    moveBall(): void {
         this.path.reverse();
         for (let id in this.path) {
             if (eval(id) + 1 == this.path.length) break;
@@ -169,10 +173,23 @@ class Game {
         this.board[eval(y)][eval(x)] = 0;
         set('board', this.board);
         document.getElementsByName(`${x},${y}`)[0].setAttribute('name', `${x2},${y2}`);
-        this.find5Balls(this.board[eval(y2)][eval(x2)], eval(y2)); //row
-        this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'column');
+        let destroy = [
+            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(y2)),
+            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'column')
+        ];
+        if (destroy[0] || destroy[1] || destroy[2] || destroy[3]) console.log('destroy');
+        else {
+            let balls = this.create3Balls();
+            for (let ball of balls) {
+                let [color, id] = ball;
+                this.find5Balls(color, eval(id.split(',')[1]));
+                this.find5Balls(color, eval(id.split(',')[0]), 'column');
+            }
+            this.clickBall();
+        }
+        console.log(destroy)
     }
-    find5Balls(color: string, number: number, type: string = 'row'): void {
+    find5Balls(color: string, number: number, type: string = 'row'): boolean {
         if (type == 'row') {
             let x: number = 0;
             for (let item of settings.board[number]) {
@@ -182,6 +199,7 @@ class Game {
                 let distance: number = settings.board[number].lastIndexOf(color) - settings.board[number].indexOf(color)
                 if (distance == 4) {
                     this.destroyBalls(`${settings.board[number].indexOf(color)},${number}`, `${settings.board[number].lastIndexOf(color)},${number}`, 'row');
+                    return true;
                 } else {
                     let xBall: number = settings.board[number].indexOf(color);
                     let count = 0;
@@ -201,9 +219,10 @@ class Game {
                     if (count >= 5) {
                         let first: string = `${lastX - count + 1},${number}`;
                         this.destroyBalls(first, last, 'row');
-                    }
+                        return true;
+                    } else return false;
                 }
-            }
+            } else return false;
         } else if (type == 'column') {
             let colors = [];
             for (let i = 0; i < settings.size; i++) {
@@ -217,6 +236,7 @@ class Game {
                 let distance: number = colors.lastIndexOf(color) - colors.indexOf(color)
                 if (distance == 4) {
                     this.destroyBalls(`${number},${colors.indexOf(color)}`, `${number},${colors.lastIndexOf(color)}`, 'column');
+                    return true;
                 } else {
                     let yBall: number = colors.indexOf(color);
                     let count = 0;
@@ -236,9 +256,12 @@ class Game {
                     if (count >= 5) {
                         let first: string = `${number},${lastY - count + 1}`;
                         this.destroyBalls(first, last, 'column');
-                    }
+                        return true;
+                    } else return false;
                 }
-            }
+            } else return false;
+        } else if (type == 'crossUp') {
+
         } else {
 
         }
@@ -254,6 +277,7 @@ class Game {
                     newId = `${x + i},${y}`;
                     document.getElementById(newId).innerHTML = '';
                     board[y][x + i] = 0;
+                    this.points++;
                     if (newId == last) break;
                 }
             }, 1000);
@@ -267,12 +291,17 @@ class Game {
                     newId = `${x},${y + i}`;
                     document.getElementById(newId).innerHTML = '';
                     board[y + i][x] = 0;
+                    this.points++;
                     if (newId == last) break;
                 }
             }, 1000);
+            set('board', board);
+        } else if (type == 'crossUp') {
+
         } else {
 
         }
+        console.log(this.points)
     }
 }
 export default Game;
