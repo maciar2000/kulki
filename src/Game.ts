@@ -121,13 +121,12 @@ class Game {
             }
         }
         let retVal: boolean = false;
-        console.log(path)
         if ((path[0].length == 0 && this.board[eval(yField)][eval(xField)] != 0) || path[0].length > 0) {
             retVal = true;
             this.path = path[0]
         }
         path[0].unshift(`${xField},${yField}`);
-        path[0].push(`${xBall},${yBall}`)
+        path[0].push(`${xBall},${yBall}`);
         for (let item of path[0]) {
             document.getElementById(<string>item).setAttribute('class', 'field path');
         }
@@ -147,12 +146,18 @@ class Game {
     }
     moveBall() {
         this.path.reverse();
-        console.log(this.path)
         for (let id in this.path) {
             if (eval(id) + 1 == this.path.length) break;
-            console.log(eval(id) + 1)
             let child = document.getElementById(<string>this.path[eval(id)]).children[0];
             document.getElementById(<string>this.path[eval(id) + 1]).append(child);
+        }
+        let i = 0;
+        for (let item of this.path) {
+            document.getElementById(<string>item).style.background = "rgba(100,100,100,0.5)";
+            i++;
+            setTimeout(() => {
+                document.getElementById(<string>item).style.background = "";
+            }, 100 * i)
         }
         document.querySelector('.clickedBall').setAttribute('class', 'ball')
         set('ballId', '');
@@ -166,6 +171,73 @@ class Game {
         set('board', this.board);
         console.table(settings.board);
         document.getElementsByName(`${x},${y}`)[0].setAttribute('name', `${x2},${y2}`);
+        this.find5Balls(this.board[eval(y2)][eval(x2)], eval(y2)); //row
+    }
+    find5Balls(color: string, number: number, type: string = 'row'): void {
+        console.log(type)
+        if (type =='row') {
+            let x: number = 0;
+            for (let item of settings.board[number]) {
+                if (item == color) x++;
+            }
+            if (x >= 5) {
+                let distance: number = settings.board[number].lastIndexOf(color) - settings.board[number].indexOf(color)
+                console.log('i,l,d', settings.board[number].indexOf(color), settings.board[number].lastIndexOf(color), distance)
+                if (distance == 4) {
+                    this.destroyBalls(`${settings.board[number].indexOf(color)},${number}`, `${settings.board[number].lastIndexOf(color)},${number}`, 'row');
+                } else {
+                    let xBall: number = settings.board[number].indexOf(color);
+                    let count = 0;
+                    let last: string;
+                    let lastX: number;
+                    for (let i = 0; i < x; i++) {
+                        if (settings.board[number][xBall + i] == color) {
+                            count++;
+                            last = `${xBall + i},${number}`;
+                            lastX = xBall + i;
+                        }
+                        else if (x >= count + 5) {
+                            count = 0;
+                            x++;
+                        } else break;
+                    }
+                    console.log('c', count)
+                    if (count >= 5) {
+                        let first: string = `${lastX - count + 1},${number}`;
+                        this.destroyBalls(first, last, 'row');
+                    }
+                }
+            }
+        } else if (type=='column') {
+
+        } else {
+
+        }
+    }
+    destroyBalls(first: string, last: string, type: string) {
+        console.log('destroy', first, last, type)
+        if (type === 'row') {
+            let board = JSON.parse(JSON.stringify(settings.board));
+            let y = eval(first.split(',')[1]);
+            setTimeout(() => {
+                for (let i: number = 0; ; i++) {
+                    let x: number = eval(first.split(',')[0]);
+                    let newId: string = `${x + i},${y}`;
+                    document.getElementById(newId).innerHTML = '';
+                    console.log(document.getElementById(newId).children)
+                    board[y][x + i] = 0;
+
+                    if (newId == last) break;
+                }
+                console.log('break')
+            }, 1000);
+            set('board', board);
+            console.table(settings.board)
+        } else if (type === 'column') {
+
+        } else {
+
+        }
     }
 }
 export default Game;
