@@ -11,7 +11,7 @@ class Game {
     }
     create3Balls(): void {
         let ball = new Ball();
-        let x: number = ball.checkEmptyField() >= 3 ? 21 : ball.checkEmptyField();
+        let x: number = ball.checkEmptyField() >= 3 ? 27 : ball.checkEmptyField();
         for (let i = 0; i < x; i++) {
             ball = new Ball();
             ball.create();
@@ -164,25 +164,22 @@ class Game {
         set('fieldId', '');
         let [x, y] = this.path[0].split(',');
         let [x2, y2] = this.path[this.path.length - 1].split(',');
-        console.table(settings.board);
         this.board = JSON.parse(JSON.stringify(settings.board));
         this.board[eval(y2)][eval(x2)] = this.board[eval(y)][eval(x)];
         this.board[eval(y)][eval(x)] = 0;
         set('board', this.board);
-        console.table(settings.board);
         document.getElementsByName(`${x},${y}`)[0].setAttribute('name', `${x2},${y2}`);
         this.find5Balls(this.board[eval(y2)][eval(x2)], eval(y2)); //row
+        this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'column');
     }
     find5Balls(color: string, number: number, type: string = 'row'): void {
-        console.log(type)
-        if (type =='row') {
+        if (type == 'row') {
             let x: number = 0;
             for (let item of settings.board[number]) {
                 if (item == color) x++;
             }
             if (x >= 5) {
                 let distance: number = settings.board[number].lastIndexOf(color) - settings.board[number].indexOf(color)
-                console.log('i,l,d', settings.board[number].indexOf(color), settings.board[number].lastIndexOf(color), distance)
                 if (distance == 4) {
                     this.destroyBalls(`${settings.board[number].indexOf(color)},${number}`, `${settings.board[number].lastIndexOf(color)},${number}`, 'row');
                 } else {
@@ -201,40 +198,78 @@ class Game {
                             x++;
                         } else break;
                     }
-                    console.log('c', count)
                     if (count >= 5) {
                         let first: string = `${lastX - count + 1},${number}`;
                         this.destroyBalls(first, last, 'row');
                     }
                 }
             }
-        } else if (type=='column') {
-
+        } else if (type == 'column') {
+            let colors = [];
+            for (let i = 0; i < settings.size; i++) {
+                colors.push(settings.board[i][number]);
+            }
+            let x: number = 0;
+            for (let item of colors) {
+                if (item == color) x++;
+            }
+            if (x >= 5) {
+                let distance: number = colors.lastIndexOf(color) - colors.indexOf(color)
+                if (distance == 4) {
+                    this.destroyBalls(`${number},${colors.indexOf(color)}`, `${number},${colors.lastIndexOf(color)}`, 'column');
+                } else {
+                    let yBall: number = colors.indexOf(color);
+                    let count = 0;
+                    let last: string;
+                    let lastY: number;
+                    for (let i = 0; i < x; i++) {
+                        if (colors[yBall + i] == color) {
+                            count++;
+                            last = `${number},${yBall + i}`;
+                            lastY = yBall + i;
+                        }
+                        else if (x >= count + 5) {
+                            count = 0;
+                            x++;
+                        } else break;
+                    }
+                    if (count >= 5) {
+                        let first: string = `${number},${lastY - count + 1}`;
+                        this.destroyBalls(first, last, 'column');
+                    }
+                }
+            }
         } else {
 
         }
     }
     destroyBalls(first: string, last: string, type: string) {
-        console.log('destroy', first, last, type)
+        let board = JSON.parse(JSON.stringify(settings.board));
         if (type === 'row') {
-            let board = JSON.parse(JSON.stringify(settings.board));
             let y = eval(first.split(',')[1]);
             setTimeout(() => {
+                let x: number = eval(first.split(',')[0]);
+                let newId: string;
                 for (let i: number = 0; ; i++) {
-                    let x: number = eval(first.split(',')[0]);
-                    let newId: string = `${x + i},${y}`;
+                    newId = `${x + i},${y}`;
                     document.getElementById(newId).innerHTML = '';
-                    console.log(document.getElementById(newId).children)
                     board[y][x + i] = 0;
-
                     if (newId == last) break;
                 }
-                console.log('break')
             }, 1000);
             set('board', board);
-            console.table(settings.board)
         } else if (type === 'column') {
-
+            let x = eval(first.split(',')[0]);
+            let y: number = eval(first.split(',')[1]);
+            let newId: string;
+            setTimeout(() => {
+                for (let i: number = 0; ; i++) {
+                    newId = `${x},${y + i}`;
+                    document.getElementById(newId).innerHTML = '';
+                    board[y + i][x] = 0;
+                    if (newId == last) break;
+                }
+            }, 1000);
         } else {
 
         }
