@@ -4,12 +4,10 @@ class Ball {
     x: number;
     y: number;
     colorId: number;
-    color: string;
-    constructor() {
+    constructor(color:number) {
+        this.colorId = color;
         this.x = Math.round(Math.random() * (settings.size - 1));
         this.y = Math.round(Math.random() * (settings.size - 1));
-        this.colorId = Math.round(Math.random() * 6);
-        this.color = settings.colors[this.colorId];
     }
     checkEmptyField(): number {
         let x: number = 0;
@@ -34,7 +32,7 @@ class Ball {
         let id: string = `${this.x},${this.y}`;
         ball.setAttribute('class', 'ball');
         ball.setAttribute('name', id);
-        ball.style.background = this.color;
+        ball.style.background = settings.colors[this.colorId];
         document.getElementById(id).appendChild(ball);
         return [`X${this.colorId}`,id];
     }

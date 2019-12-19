@@ -7,23 +7,55 @@ class Game {
     board: any;
     path: String[];
     points: number;
+    nextBalls: any;
+    colors: number[];
     constructor() {
         this.startTime = new Date();
         this.points = 0;
+        this.colors = [];
     }
     create3Balls(): string[][] {
-        let ball = new Ball();
+        let ball = new Ball(0);
         let x: number = ball.checkEmptyField() >= 3 ? 3 : ball.checkEmptyField();
+        if (x<3 || ball.checkEmptyField()<4) {
+            if (confirm("Game over! Restart the game?")) location.reload();
+        }
         let balls: string[][] = [];
         for (let i = 0; i < x; i++) {
-            ball = new Ball();
+            ball = new Ball(this.colors[i]);
             balls.push(ball.create());
         }
+        this.showNextBalls();
         return balls;
     }
+    showNextBalls() {
+        this.colors = [];
+        for (let i = 0; i < 3; i++){
+            this.colors.push(Math.round(Math.random() * 6));
+        }
+        for (let i = 0; i < 3; i++) {
+            let ball: HTMLDivElement = document.createElement('div');
+            ball.style.background = settings.colors[this.colors[i]];
+            ball.setAttribute('class', 'ball');
+            document.getElementById('nextBalls').children[i].innerHTML = '';
+            document.getElementById('nextBalls').children[i].appendChild(ball);
+        }
+    }
     startGame() {
+        this.showNextBalls();
         this.create3Balls();
         this.clickBall();
+        this.showPoints();
+        let m = 0;
+        setInterval(() => {
+            let date: Date = new Date();
+            let time = Math.round((date.getTime() - this.startTime.getTime()) / 1000);
+            if (time % 60 == 0) m++;
+            document.getElementById('time').children[0].innerHTML = `${m}:${time-(m*60)}`;
+        },1000)
+    }
+    showPoints() {
+        document.getElementById('points').children[0].innerHTML = this.points + '';
     }
     clickBall(): void {
         let clickField = this.clickField.bind(this);
@@ -186,6 +218,8 @@ class Game {
                 let [color, id] = ball;
                 this.find5Balls(color, eval(id.split(',')[1]));
                 this.find5Balls(color, eval(id.split(',')[0]), 'column');
+                this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'crossUp', eval(y2));
+                this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'crossDown', eval(y2));
             }
             this.clickBall();
         }
@@ -404,6 +438,7 @@ class Game {
                         let [x, y] = crossId[i].split(',');
                         document.getElementById(crossId[i]).innerHTML = '';
                         board[eval(y)][eval(x)] = 0;
+                        this.points++;
                     }
                 }
             }, 1000);
@@ -414,12 +449,13 @@ class Game {
                         let [x, y] = crossId[i].split(',');
                         document.getElementById(crossId[i]).innerHTML = '';
                         board[eval(y)][eval(x)] = 0;
+                        this.points++;
                     }
                 }
             }, 1000);
         }
         set('board', board);
-        //console.log(this.points)
+        setTimeout(()=>this.showPoints(), 1500);
     }
 }
 export default Game;
