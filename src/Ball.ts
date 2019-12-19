@@ -8,7 +8,7 @@ class Ball {
     constructor() {
         this.x = Math.round(Math.random() * (settings.size - 1));
         this.y = Math.round(Math.random() * (settings.size - 1));
-        this.colorId = 1//Math.round(Math.random() * 6);
+        this.colorId = Math.round(Math.random() * 6);
         this.color = settings.colors[this.colorId];
     }
     checkEmptyField(): number {

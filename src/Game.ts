@@ -175,7 +175,9 @@ class Game {
         document.getElementsByName(`${x},${y}`)[0].setAttribute('name', `${x2},${y2}`);
         let destroy = [
             this.find5Balls(this.board[eval(y2)][eval(x2)], eval(y2)),
-            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'column')
+            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'column'),
+            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'crossUp', eval(y2)),
+            this.find5Balls(this.board[eval(y2)][eval(x2)], eval(x2), 'crossDown', eval(y2))
         ];
         if (destroy[0] || destroy[1] || destroy[2] || destroy[3]) console.log('destroy');
         else {
@@ -187,9 +189,8 @@ class Game {
             }
             this.clickBall();
         }
-        console.log(destroy)
     }
-    find5Balls(color: string, number: number, type: string = 'row'): boolean {
+    find5Balls(color: string, number: number, type: string = 'row', number2?: number): boolean {
         if (type == 'row') {
             let x: number = 0;
             for (let item of settings.board[number]) {
@@ -261,12 +262,114 @@ class Game {
                 }
             } else return false;
         } else if (type == 'crossUp') {
-
+            //* number=x, number2=y
+            if (number + number2 >= 4 && number + number2 <= 12) {
+                let colors: string[] = [];
+                let y: number;
+                let ids: string[] = [];
+                if (number2 + number <= 8) {
+                    y = number2 + number;
+                    for (let i = 0; i <= y; i++) {
+                        colors.push(settings.board[y - i][i]);
+                        ids.push(`${i},${y - i}`);
+                    }
+                } else {
+                    y = number + number2 - 8;
+                    for (let i = 0; i < 9 - y; i++) {
+                        colors.push(settings.board[y + i][8 - i]);
+                        ids.push(`${8 - i},${y + i}`);
+                    }
+                }
+                let x = 0;
+                for (let item of colors) {
+                    if (item == color) x++;
+                }
+                if (x >= 5) {
+                    let distance: number = colors.lastIndexOf(color) - colors.indexOf(color)
+                    if (distance == 4) {
+                        this.destroyBalls('0', '0', 'crossUp', ids, colors, color);
+                        return true;
+                    } else {
+                        let yBall: number = colors.indexOf(color);
+                        let count = 0;
+                        let ids2: string[] = [ids[yBall]];
+                        let colors2: string[] = [colors[yBall]]
+                        for (let i = 0; i < x; i++) {
+                            if (colors[yBall + i] == color) {
+                                count++;
+                                ids2.push(ids[yBall + i])
+                                colors2.push(colors[yBall + i])
+                            }
+                            else if (x >= count + 5) {
+                                count = 0;
+                                x++;
+                                ids2 = [];
+                                colors2 = [];
+                            } else break;
+                        }
+                        if (count >= 5) {
+                            this.destroyBalls('0', '0', 'crossUp', ids2, colors2, color);
+                            return true;
+                        } else return false;
+                    }
+                } else return false;
+            } else return false;
         } else {
-
+            //* number=x, number2=y
+            if (number2 - number <= 4 && number2 - number >= -4) {
+                let colors: string[] = [];
+                let y: number;
+                let ids: string[] = [];
+                if (number2 - number >= 0) {
+                    y = number2 - number;
+                    for (let i = 0; i < 9 - y; i++) {
+                        colors.push(settings.board[y + i][i]);
+                        ids.push(`${i},${y + i}`)
+                    }
+                } else {
+                    y = 8 + (number2 - number);
+                    for (let i = 0; i <= y; i++) {
+                        colors.push(settings.board[y - i][8 - i]);
+                        ids.push(`${8 - i},${y - i}`);
+                    }
+                }
+                let x = 0;
+                for (let item of colors) {
+                    if (item == color) x++;
+                }
+                if (x >= 5) {
+                    let distance: number = colors.lastIndexOf(color) - colors.indexOf(color)
+                    if (distance == 4) {
+                        this.destroyBalls('0', '0', 'crossDown', ids, colors, color);
+                        return true;
+                    } else {
+                        let yBall: number = colors.indexOf(color);
+                        let count = 0;
+                        let ids2: string[] = [ids[yBall]];
+                        let colors2: string[] = [colors[yBall]]
+                        for (let i = 0; i < x; i++) {
+                            if (colors[yBall + i] == color) {
+                                count++;
+                                ids2.push(ids[yBall + i])
+                                colors2.push(colors[yBall + i])
+                            }
+                            else if (x >= count + 5) {
+                                count = 0;
+                                x++;
+                                ids2 = [];
+                                colors2 = [];
+                            } else break;
+                        }
+                        if (count >= 5) {
+                            this.destroyBalls('0', '0', 'crossDown', ids2, colors2, color);
+                            return true;
+                        } else return false;
+                    }
+                } else return false;
+            } else return false;
         }
     }
-    destroyBalls(first: string, last: string, type: string) {
+    destroyBalls(first: string, last: string, type: string, crossId?: string[], crossColors?: string[], color?: string) {
         let board = JSON.parse(JSON.stringify(settings.board));
         if (type === 'row') {
             let y = eval(first.split(',')[1]);
@@ -281,7 +384,6 @@ class Game {
                     if (newId == last) break;
                 }
             }, 1000);
-            set('board', board);
         } else if (type === 'column') {
             let x = eval(first.split(',')[0]);
             let y: number = eval(first.split(',')[1]);
@@ -295,13 +397,29 @@ class Game {
                     if (newId == last) break;
                 }
             }, 1000);
-            set('board', board);
         } else if (type == 'crossUp') {
-
+            setTimeout(() => {
+                for (let i = 0; i < crossId.length; i++) {
+                    if (crossColors[i] == color) {
+                        let [x, y] = crossId[i].split(',');
+                        document.getElementById(crossId[i]).innerHTML = '';
+                        board[eval(y)][eval(x)] = 0;
+                    }
+                }
+            }, 1000);
         } else {
-
+            setTimeout(() => {
+                for (let i = 0; i < crossId.length; i++) {
+                    if (crossColors[i] == color) {
+                        let [x, y] = crossId[i].split(',');
+                        document.getElementById(crossId[i]).innerHTML = '';
+                        board[eval(y)][eval(x)] = 0;
+                    }
+                }
+            }, 1000);
         }
-        console.log(this.points)
+        set('board', board);
+        //console.log(this.points)
     }
 }
 export default Game;
